@@ -104,15 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$savedPhotos[] = saveUploadedPhoto('photo1', true);
 		$savedPhotos[] = saveUploadedPhoto('photo2', true);
 		
-		$statement = $db->prepare("INSERT INTO products (name, description, price, stock, photo1, photo2, photo3) VALUES (?, ?, ?, ?, ?, ?, '')");
-		if (!$statement) {
-			throw new RuntimeException('No se pudo preparar el producto.');
-		}
-		$statement->bind_param('sssiss', $name, $description, $price, $stock, $savedPhotos[0], $savedPhotos[1]);
-		if (!$statement->execute()) {
+		// Inserción adaptada a PDO usando $pdo
+		$statement = $pdo->prepare("INSERT INTO products (name, description, price, stock, photo1, photo2, photo3) VALUES (?, ?, ?, ?, ?, ?, '')");
+		if (!$statement->execute([$name, $description, $price, $stock, $savedPhotos[0], $savedPhotos[1]])) {
 			throw new RuntimeException('No se pudo guardar el producto.');
 		}
-		$statement->close();
+		
 		$message = 'Producto agregado correctamente.';
 	} catch (RuntimeException $exception) {
 		removePhotos($savedPhotos);
