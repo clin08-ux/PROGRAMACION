@@ -24,7 +24,7 @@ function saveCarouselPhoto($field, $filename)
     }
 
     if (!move_uploaded_file($file['tmp_name'], __DIR__ . '/' . $filename)) {
-        throw new RuntimeException('No se pudo guardar ' . $filename . '. Revisa los permisos de htdocs.');
+        throw new RuntimeException('No se pudo guardar ' . $filename . '. Revisa los permisos.');
     }
 
     return true;
@@ -52,60 +52,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($action === 'delete') {
-            $find = $db->prepare('SELECT photo1, photo2, photo3 FROM products WHERE id = ?');
-            $find->bind_param('i', $id);
-            $find->execute();
-            $find->bind_result($photo1, $photo2, $photo3);
-            if (!$find->fetch()) {
-                throw new RuntimeException('El producto ya no existe.');
-            }
-            $find->close();
-
-            $delete = $db->prepare('DELETE FROM products WHERE id = ?');
-            $delete->bind_param('i', $id);
-            if (!$delete->execute()) {
-                throw new RuntimeException('No se pudo borrar el producto.');
-            }
-            $delete->close();
-            removePhotos(array($photo1, $photo2, $photo3));
-            $message = 'Producto borrado correctamente.';
-            } elseif ($action === 'update') {
-            list($name, $description, $price, $stock) = getProductInput();
-
-            $find = $db->prepare('SELECT photo1, photo2, photo3 FROM products WHERE id = ?');
-            $find->bind_param('i', $id);
-            $find->execute();
-            $find->bind_result($oldPhoto1, $oldPhoto2, $oldPhoto3);
-            if (!$find->fetch()) {
-                throw new RuntimeException('El producto ya no existe.');
-            }
-            $find->close();
-
-            $oldPhotos = array($oldPhoto1, $oldPhoto2, $oldPhoto3);
-            $photo1 = saveUploadedPhoto('photo1', false);
-            if ($photo1) { $newPhotos[] = $photo1; } else { $photo1 = $oldPhotos[0]; }
-            $photo2 = saveUploadedPhoto('photo2', false);
-            if ($photo2) { $newPhotos[] = $photo2; } else { $photo2 = $oldPhotos[1]; }
-            $photo3 = saveUploadedPhoto('photo3', false);
-            if ($photo3) { $newPhotos[] = $photo3; } else { $photo3 = $oldPhotos[2]; }
-
-            $update = $db->prepare('UPDATE products SET name = ?, description = ?, price = ?, stock = ?, photo1 = ?, photo2 = ?, photo3 = ? WHERE id = ?');
-            if (!$update) {
-                throw new RuntimeException('No se pudo preparar la modificación del producto.');
-            }
-            $update->bind_param('sssisssi', $name, $description, $price, $stock, $photo1, $photo2, $photo3, $id);
-            if (!$update->execute()) {
-                throw new RuntimeException('No se pudo modificar el producto.');
-            }
-            $update->close();
-
-            foreach ($oldPhotos as $index => $oldPhoto) {
-                if ($oldPhoto !== array($photo1, $photo2, $photo3)[$index]) {
-                    removePhotos(array($oldPhoto));
+                $find = $pdo->prepare('SELECT photo1, photo2, photo3 FROM products WHERE id = ?');
+                $find->execute([$id]);
+                $productData = $find->fetch();
+                if (!$productData) {
+                    throw new RuntimeException('El producto ya no existe.');
                 }
-            }
-            $newPhotos = array();
-            $message = 'Producto modificado correctamente.';
+
+                $delete = $pdo->prepare('DELETE FROM products WHERE id = ?');
+                if (!$delete->execute([$id])) {
+                    throw new RuntimeException('No se pudo borrar el producto.');
+                }
+                removePhotos(array($productData['photo1'], $productData['photo2'], $productData['photo3']));
+                $message = 'Producto borrado correctamente.';
+            } elseif ($action === 'update') {
+                list($name, $description, $price, $stock) = getProductInput();
+
+                $find = $pdo->prepare('SELECT photo1, photo2, photo3 FROM products WHERE id = ?');
+                $find->execute([$id]);
+                $oldProduct = $find->fetch();
+                if (!$oldProduct) {
+                    throw new RuntimeException('El producto ya no existe.');
+                }
+
+                $oldPhotos = array($oldProduct['photo1'], $oldProduct['photo2'], $oldProduct['photo3']);
+                $photo1 = saveUploadedPhoto('photo1', false);
+                if ($photo1) { $newPhotos[] = $photo1; } else { $photo1 = $oldPhotos[0]; }
+                $photo2 = saveUploadedPhoto('photo2', false);
+                if ($photo2) { $newPhotos[] = $photo2; } else { $photo2 = $oldPhotos[1]; }
+                $photo3 = saveUploadedPhoto('photo3', false);
+                if ($photo3) { $newPhotos[] = $photo3; } else { $photo3 = $oldPhotos[2]; }
+
+                $update = $pdo->prepare('UPDATE products SET name = ?, description = ?, price = ?, stock = ?, photo1 = ?, photo2 = ?, photo3 = ? WHERE id = ?');
+                if (!$update->execute([$name, $description, $price, $stock, $photo1, $photo2, $photo3, $id])) {
+                    throw new RuntimeException('No se pudo modificar el producto.');
+                }
+
+                foreach ($oldPhotos as $index => $oldPhoto) {
+                    $currentNewPhotos = array($photo1, $photo2, $photo3);
+                    if ($oldPhoto !== $currentNewPhotos[$index]) {
+                        removePhotos(array($oldPhoto));
+                    }
+                }
+                $newPhotos = array();
+                $message = 'Producto modificado correctamente.';
             } else {
                 throw new RuntimeException('La acción solicitada no es válida.');
             }
@@ -119,15 +109,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $editingRecord = null;
 $editId = filter_var(isset($_GET['edit']) ? $_GET['edit'] : null, FILTER_VALIDATE_INT);
 if ($editId && $editId > 0) {
-    $edit = $db->prepare('SELECT id, name, description, price, stock, photo1, photo2, photo3 FROM products WHERE id = ?');
-    $edit->bind_param('i', $editId);
-    $edit->execute();
-    $result = $edit->get_result();
-    $editingRecord = $result->fetch_assoc();
-    $edit->close();
+    $edit = $pdo->prepare('SELECT id, name, description, price, stock, photo1, photo2, photo3 FROM products WHERE id = ?');
+    $edit->execute([$editId]);
+    $editingRecord = $edit->fetch();
 }
 
-$products = $db->query('SELECT id, name, description, price, stock, photo1, photo2, photo3 FROM products ORDER BY id DESC');
+$stmtProducts = $pdo->query('SELECT id, name, description, price, stock, photo1, photo2, photo3 FROM products ORDER BY id DESC');
+$products = $stmtProducts->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -149,8 +137,6 @@ $products = $db->query('SELECT id, name, description, price, stock, photo1, phot
         .carousel-footer{position:absolute;z-index:2;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(transparent,rgba(0,0,0,.72))}
         .carousel-dots{display:flex;gap:8px}.carousel-dot{width:10px;height:10px;padding:0;border:1px solid #fff;border-radius:50%;background:transparent;cursor:pointer}.carousel-dot[aria-current=true]{background:#fff}
         .carousel-count{font-size:14px}
-        .slide-missing{display:flex;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;font-size:16px}
-        .slide-missing a{padding:9px 13px;border-radius:4px;background:#176b58;color:#fff;text-decoration:none;font-size:14px}
         .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
         button,a.button{font:inherit;background:#176b58;color:#fff;border:0;border-radius:4px;padding:10px 14px;text-decoration:none;cursor:pointer}
         button.delete{background:#a7372d}a.button{background:#e5efec;color:#176b58}.message{padding:12px;background:#e4f3eb;color:#205c3b}.error{padding:12px;background:#fde9e7;color:#8a2d25}
@@ -216,8 +202,8 @@ $products = $db->query('SELECT id, name, description, price, stock, photo1, phot
     <?php endif; ?>
 
     <h2>Productos guardados</h2>
-    <?php if ($products && $products->num_rows > 0): ?>
-        <?php while ($record = $products->fetch_assoc()): ?>
+    <?php if (!empty($products)): ?>
+        <?php foreach ($products as $record): ?>
             <article class="record">
                 <h3><?php echo e($record['name']); ?></h3>
                 <p><?php echo nl2br(e($record['description'])); ?></p>
@@ -237,7 +223,7 @@ $products = $db->query('SELECT id, name, description, price, stock, photo1, phot
                     </form>
                 </div>
             </article>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     <?php else: ?>
         <p class="muted">Todavía no hay productos.</p>
     <?php endif; ?>
