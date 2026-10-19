@@ -1,24 +1,50 @@
 <?php
-mysqli_report(MYSQLI_REPORT_OFF);
+$databaseEnvironment = array(
+    'DB_HOST' => getenv('DB_HOST'),
+    'DB_USER' => getenv('DB_USER'),
+    'DB_PASSWORD' => getenv('DB_PASSWORD'),
+    'DB_PRODUCTS_NAME' => getenv('DB_PRODUCTS_NAME'),
+    'DB_SURVEY_NAME' => getenv('DB_SURVEY_NAME')
+);
+$missingEnvironment = array();
+foreach ($databaseEnvironment as $name => $value) {
+    if ($value === false || trim($value) === '') {
+        $missingEnvironment[] = $name;
+    }
+}
+if ($missingEnvironment) {
+    error_log('Missing database environment variables: ' . implode(', ', $missingEnvironment));
+    http_response_code(500);
+    exit('Faltan variables de entorno para configurar la base de datos.');
+}
 
-// Credenciales de MySQL de la cuenta de InfinityFree.
-$dbHost = 'sql312.infinityfree.com';
-$dbUser = 'if0_43034034';
-$dbPassword = 'dX9lAKUeDcwq';
-$productDbName = 'if0_43034034_productos';
-$surveyDbName = 'if0_43034034_encuesta';
-$dbPort = 3306;
+$dbHost = $databaseEnvironment['DB_HOST'];
+$dbUser = $databaseEnvironment['DB_USER'];
+$dbPassword = $databaseEnvironment['DB_PASSWORD'];
+$productDbName = $databaseEnvironment['DB_PRODUCTS_NAME'];
+$surveyDbName = $databaseEnvironment['DB_SURVEY_NAME'];
+$dbPortValue = getenv('DB_PORT');
+$dbPort = $dbPortValue === false || $dbPortValue === '' ? 3306 : filter_var($dbPortValue, FILTER_VALIDATE_INT);
+if ($dbPort === false || $dbPort < 1 || $dbPort > 65535) {
+    error_log('Invalid DB_PORT environment variable.');
+    http_response_code(500);
+    exit('La variable DB_PORT no contiene un puerto válido.');
+}
+
 $requestPage = isset($_SERVER['SCRIPT_NAME']) ? basename($_SERVER['SCRIPT_NAME']) : '';
 $dbName = $requestPage === 'encuesta.php' ? $surveyDbName : $productDbName;
 
-$db = @new mysqli($dbHost, $dbUser, $dbPassword, $dbName, $dbPort);
-if ($db->connect_errno) {
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+try {
+    $db = new mysqli($dbHost, $dbUser, $dbPassword, $dbName, $dbPort);
+    $db->set_charset('utf8mb4');
+} catch (mysqli_sql_exception $exception) {
+    error_log('Database connection failed: ' . $exception->getMessage());
     http_response_code(500);
     exit($dbName === $surveyDbName
-        ? 'No se pudo conectar a la base de datos de la encuesta en InfinityFree. Revisa el nombre, las credenciales y si se permiten conexiones desde este servidor.'
-        : 'No se pudo conectar a la base de datos de productos. Revisa las credenciales de config.php y que la base de datos exista en InfinityFree.');
+        ? 'No se pudo conectar a la base de datos de la encuesta. Revisa las variables de entorno y el acceso remoto del servidor MySQL.'
+        : 'No se pudo conectar a la base de datos de productos. Revisa las variables de entorno y el acceso remoto del servidor MySQL.');
 }
-$db->set_charset('utf8mb4');
 
 $createTable = $dbName === $surveyDbName
     ? "CREATE TABLE IF NOT EXISTS upvm_survey_responses (
@@ -44,7 +70,10 @@ $createTable = $dbName === $surveyDbName
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
-if (!$db->query($createTable)) {
+try {
+    $db->query($createTable);
+} catch (mysqli_sql_exception $exception) {
+    error_log('Database table initialization failed: ' . $exception->getMessage());
     http_response_code(500);
     exit($dbName === $surveyDbName
         ? 'No se pudo crear la tabla de la encuesta. Revisa los permisos de la base de datos.'
