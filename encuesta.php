@@ -147,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			<div class="actions survey-submit">
 				<button type="submit" <?php echo $surveyReady ? '' : 'disabled'; ?>>Enviar encuesta</button>
 				<a class="button secondary" href="index.php">Volver a la página principal</a>
+				<a class="button secondary" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
 			</div>
 		</form>
 	</section>

@@ -241,7 +241,11 @@ $products = $db->query('SELECT id, name, description, price, stock, photo1, phot
     <?php else: ?>
         <p class="muted">Todavía no hay productos.</p>
     <?php endif; ?>
-    <p><a class="button" href="crud.php">Agregar un producto</a></p>
+    <p>
+        <a class="button" href="crud.php">Agregar un producto</a>
+        <a class="button" href="index.php">Página principal</a>
+        <a class="button" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
+    </p>
 </main>
 <script>
 (() => {

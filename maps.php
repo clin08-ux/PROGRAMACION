@@ -38,6 +38,7 @@
 	</div>
 	<div class="actions">
 		<a class="button secondary" href="index.php">Página principal</a>
+		<a class="button" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
 		<a class="button" href="https://www.google.com/maps/search/?api=1&amp;query=Museo+Soumaya" target="_blank" rel="noopener noreferrer">Abrir Museo Soumaya en Google Maps</a>
 	</div>
 </main>

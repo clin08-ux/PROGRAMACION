@@ -31,7 +31,7 @@
 		.section-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px}
 		h2{margin:0;color:var(--forest);font-size:28px;font-weight:normal}
 		.section-heading p{margin:0;color:var(--muted);font-family:Arial,sans-serif;font-size:13px}
-		.access-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+		.access-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px}
 		.access-item{display:flex;min-height:210px;flex-direction:column;justify-content:space-between;padding:22px;border:1px solid var(--line);background:rgba(255,255,255,.56);text-decoration:none;transition:border-color .2s ease,background .2s ease,transform .2s ease}
 		.access-item:hover{transform:translateY(-3px);border-color:var(--leaf);background:#fff}
 		.access-top{display:flex;justify-content:space-between;gap:12px;color:var(--leaf);font-family:Arial,sans-serif;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
@@ -80,6 +80,14 @@
 			<a class="access-item" href="encuesta.php">
 				<span class="access-top">03 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Encuesta UPVM</h3><p>Comparte tu experiencia y tus propuestas.</p></span>
+			</a>
+			<a class="access-item" href="video.php">
+				<span class="access-top">04 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
+				<span><h3>Video</h3><p>Mira el video seleccionado para este espacio.</p></span>
+			</a>
+			<a class="access-item" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">
+				<span class="access-top">05 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
+				<span><h3>Chat</h3><p>Abre el chat en línea.</p></span>
 			</a>
 		</div>
 	</section>

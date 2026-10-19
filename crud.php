@@ -102,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			<a class="button" href="administrar.php">Modificar o borrar registros</a>
 			<a class="button" href="maps.php">Maps</a>
 			<a class="button" href="encuesta.php">Encuesta UPVM</a>
+			<a class="button" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
 		</div>
 		</form>
 	</section>

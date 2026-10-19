@@ -49,6 +49,7 @@ function escapeSurprise($value)
 				<nav class="actions" aria-label="Navegación">
 					<a href="index.php" onclick="window.location.href='index.php'; return false;">Página principal</a>
 					<a class="secondary" href="encuesta.php" onclick="window.location.href='encuesta.php'; return false;">Volver a la encuesta</a>
+					<a class="secondary" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
 				</nav>
 			</div>
 		</article>
