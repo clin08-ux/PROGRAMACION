@@ -85,7 +85,7 @@
 				<span class="access-top">04 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Video</h3><p>Mira el video seleccionado para este espacio.</p></span>
 			</a>
-			<a class="access-item" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">
+			<a class="access-item" href="chat.php">
 				<span class="access-top">05 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Chat</h3><p>Abre el chat en línea.</p></span>
 			</a>

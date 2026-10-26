@@ -190,4 +190,4 @@ $apiBaseJson = json_encode(
     'app.php?route=',
     JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
 );
-require __DIR__ . '/templates/chat.php';
+require __DIR__ . '/chat_template.php';

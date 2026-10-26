@@ -1,98 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-// Iniciar sesión si no está iniciada (necesario para el token CSRF)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Funciones auxiliares de seguridad y manejo de datos
-if (!function_exists('e')) {
-    function e($string) {
-        return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
-    }
-}
-
-if (!function_exists('csrfField')) {
-    function csrfField() {
-        if (empty($_SESSION['csrf_token'])) {
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        }
-        return '<input type="hidden" name="csrf_token" value="' . e($_SESSION['csrf_token']) . '">';
-    }
-}
-
-if (!function_exists('verifyCsrfToken')) {
-    function verifyCsrfToken() {
-        $token = $_POST['csrf_token'] ?? '';
-        if (empty($token) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
-            throw new RuntimeException('Token CSRF inválido o expirado. Por favor, recargue la página.');
-        }
-    }
-}
-
-if (!function_exists('getProductInput')) {
-    function getProductInput() {
-        $name = trim($_POST['name'] ?? '');
-        $description = trim($_POST['description'] ?? '');
-        $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
-        $stock = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT);
-
-        if ($name === '' || $description === '' || $price === false || $stock === false) {
-            throw new RuntimeException('Por favor, completa todos los campos correctamente.');
-        }
-        return [$name, $description, $price, $stock];
-    }
-}
-
-if (!function_exists('saveUploadedPhoto')) {
-    function saveUploadedPhoto($inputName, $required = false) {
-        if (!isset($_FILES[$inputName]) || $_FILES[$inputName]['error'] === UPLOAD_ERR_NO_FILE) {
-            if ($required) {
-                throw new RuntimeException("La foto es obligatoria.");
-            }
-            return '';
-        }
-        $file = $_FILES[$inputName];
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new RuntimeException("Error al subir la imagen.");
-        }
-        if ($file['size'] > 5 * 1024 * 1024) {
-            throw new RuntimeException("La imagen excede el límite de 5 MB.");
-        }
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($file['tmp_name']);
-        $allowed = ['image/jpeg' => 'jpeg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        if (!isset($allowed[$mime])) {
-            throw new RuntimeException("Formato de imagen no válido. Solo se permite JPG, PNG o WEBP.");
-        }
-        $ext = $allowed[$mime];
-        $filename = uniqid('prod_', true) . '.' . $ext;
-        $uploadDir = __DIR__ . '/uploads/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        $destination = $uploadDir . $filename;
-        if (!move_uploaded_file($file['tmp_name'], $destination)) {
-            throw new RuntimeException("No se pudo guardar la imagen en el servidor.");
-        }
-        return 'uploads/' . $filename;
-    }
-}
-
-if (!function_exists('removePhotos')) {
-    function removePhotos(array $photos) {
-        foreach ($photos as $photo) {
-            if (!empty($photo)) {
-                $path = __DIR__ . '/' . $photo;
-                if (file_exists($path)) {
-                    @unlink($path);
-                }
-            }
-        }
-    }
-}
-
 $message = '';
 $error = '';
 
@@ -103,13 +11,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		list($name, $description, $price, $stock) = getProductInput();
 		$savedPhotos[] = saveUploadedPhoto('photo1', true);
 		$savedPhotos[] = saveUploadedPhoto('photo2', true);
-		
-		// Inserción adaptada a PDO usando $pdo
-		$statement = $pdo->prepare("INSERT INTO products (name, description, price, stock, photo1, photo2, photo3) VALUES (?, ?, ?, ?, ?, ?, '')");
-		if (!$statement->execute([$name, $description, $price, $stock, $savedPhotos[0], $savedPhotos[1]])) {
+		$statement = $db->prepare("INSERT INTO products (name, description, price, stock, photo1, photo2, photo3) VALUES (?, ?, ?, ?, ?, ?, '')");
+		if (!$statement) {
+			throw new RuntimeException('No se pudo preparar el producto.');
+		}
+		$statement->bind_param('sssiss', $name, $description, $price, $stock, $savedPhotos[0], $savedPhotos[1]);
+		if (!$statement->execute()) {
 			throw new RuntimeException('No se pudo guardar el producto.');
 		}
-		
+		$statement->close();
 		$message = 'Producto agregado correctamente.';
 	} catch (RuntimeException $exception) {
 		removePhotos($savedPhotos);
@@ -192,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			<a class="button" href="administrar.php">Modificar o borrar registros</a>
 			<a class="button" href="maps.php">Maps</a>
 			<a class="button" href="encuesta.php">Encuesta UPVM</a>
-			<a class="button" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
+			<a class="button" href="chat.php">Chat</a>
 		</div>
 		</form>
 	</section>
@@ -211,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		activeIndex = (index + slides.length) % slides.length;
 		slides.forEach((slide, slideIndex) => {
 			slide.classList.toggle('is-active', slideIndex === activeIndex);
-			slide.setAttribute('aria-hidden', slideIndex === activeIndex ? 'false' : 'true');
+			 slide.setAttribute('aria-hidden', slideIndex === activeIndex ? 'false' : 'true');
 			dots[slideIndex].setAttribute('aria-current', slideIndex === activeIndex ? 'true' : 'false');
 		});
 		count.textContent = (activeIndex + 1) + ' / ' + slides.length;
