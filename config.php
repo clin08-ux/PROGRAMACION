@@ -9,8 +9,45 @@
 // ---------------------------------------------------------------
 function envValue(array $names)
 {
+    static $localEnvironment = null;
+    if ($localEnvironment === null) {
+        $localEnvironment = array();
+        $envFile = __DIR__ . DIRECTORY_SEPARATOR . '.env';
+        if (is_file($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES);
+            if ($lines === false) {
+                error_log('Could not read the local .env file.');
+                http_response_code(500);
+                exit('No se pudo leer el archivo local de configuración.');
+            }
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || $line[0] === '#') {
+                    continue;
+                }
+                $separator = strpos($line, '=');
+                if ($separator === false) {
+                    continue;
+                }
+                $name = trim(substr($line, 0, $separator));
+                $value = trim(substr($line, $separator + 1));
+                if (strlen($value) >= 2
+                    && (($value[0] === '"' && substr($value, -1) === '"')
+                        || ($value[0] === "'" && substr($value, -1) === "'"))) {
+                    $value = substr($value, 1, -1);
+                }
+                if ($name !== '') {
+                    $localEnvironment[$name] = $value;
+                }
+            }
+        }
+    }
+
     foreach ($names as $name) {
         $value = getenv($name);
+        if ($value === false && isset($localEnvironment[$name])) {
+            $value = $localEnvironment[$name];
+        }
         if ($value !== false && trim($value) !== '') {
             return trim($value);
         }
