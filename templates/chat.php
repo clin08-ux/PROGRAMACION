@@ -88,7 +88,9 @@
       <h1>Chat de la clase</h1>
       <div>
         <span id="estado">Conectando...</span>
-        {% if home_url %}<a href="{{ home_url }}">Volver al sitio</a>{% endif %}
+        <?php if ($homeUrl !== ''): ?>
+          <a href="<?= htmlspecialchars($homeUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">Volver al sitio</a>
+        <?php endif; ?>
       </div>
     </header>
 
@@ -110,6 +112,7 @@
     //   - Pregunta por mensajes nuevos cada 2 s con GET /api/mensajes?desde=N
     // ------------------------------------------------------------
     const INTERVALO_MS = 2000;
+    const API_BASE = <?= $apiBaseJson ?>;
     let ultimoId = 0;
 
     const caja = document.getElementById("mensajes");
@@ -142,7 +145,7 @@
 
     async function consultarMensajes() {
       try {
-        const resp = await fetch("/api/mensajes?desde=" + ultimoId);
+        const resp = await fetch(API_BASE + "api/mensajes&desde=" + ultimoId);
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const nuevos = await resp.json();
         if (nuevos.length > 0) {
@@ -167,7 +170,7 @@
 
       botonEnviar.disabled = true;
       try {
-        const resp = await fetch("/api/mensajes", {
+        const resp = await fetch(API_BASE + "api/mensajes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ usuario, texto })

@@ -85,8 +85,16 @@
 				<span class="access-top">04 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Video</h3><p>Mira el video seleccionado para este espacio.</p></span>
 			</a>
-			<a class="access-item" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">
+			<a class="access-item" href="ubicacion.php">
 				<span class="access-top">05 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
+				<span><h3>Ubicación</h3><p>Guarda tu ubicación actual y la guarda en la base de datos.</p></span>
+			</a>
+			<a class="access-item" href="foto.php">
+				<span class="access-top">06 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
+				<span><h3>Foto</h3><p>Usa la cámara para tomar una foto y guardar la imagen.</p></span>
+			</a>
+			<a class="access-item" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">
+				<span class="access-top">07 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Chat</h3><p>Abre el chat en línea.</p></span>
 			</a>
 		</div>

@@ -70,8 +70,27 @@ $createTable = $dbName === $surveyDbName
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
+$locationTable = "CREATE TABLE IF NOT EXISTS ubicaciones (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    latitude DECIMAL(10,8) NOT NULL,
+    longitude DECIMAL(11,8) NOT NULL,
+    address VARCHAR(255) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+$photoTable = "CREATE TABLE IF NOT EXISTS fotos_camara (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    photo_path VARCHAR(255) NOT NULL,
+    caption VARCHAR(255) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
 try {
     $db->query($createTable);
+    if ($dbName === $productDbName) {
+        $db->query($locationTable);
+        $db->query($photoTable);
+    }
 } catch (mysqli_sql_exception $exception) {
     error_log('Database table initialization failed: ' . $exception->getMessage());
     http_response_code(500);

@@ -2,13 +2,20 @@
 
 $chatUrl = getenv('CHAT_URL');
 if ($chatUrl === false || trim($chatUrl) === '') {
-    $chatUrl = 'https://f7kc9fmh-5000.usw3.devtunnels.ms/';
+    $chatUrl = 'app.php';
 }
 
 $chatUrl = trim($chatUrl);
 $chatUrlParts = parse_url($chatUrl);
-if (!$chatUrlParts || !isset($chatUrlParts['scheme'], $chatUrlParts['host'])
-    || !in_array(strtolower($chatUrlParts['scheme']), array('http', 'https'), true)) {
+$absoluteChatUrl = $chatUrlParts
+    && isset($chatUrlParts['scheme'], $chatUrlParts['host'])
+    && in_array(strtolower($chatUrlParts['scheme']), array('http', 'https'), true);
+$relativeChatUrl = $chatUrlParts
+    && !isset($chatUrlParts['scheme'])
+    && !isset($chatUrlParts['host'])
+    && strpos($chatUrl, '/') !== 0
+    && strpos($chatUrl, '..') === false;
+if (!$absoluteChatUrl && !$relativeChatUrl) {
     http_response_code(500);
     exit('La dirección del chat configurada en CHAT_URL no es válida.');
 }
