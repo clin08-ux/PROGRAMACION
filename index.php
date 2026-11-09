@@ -93,7 +93,7 @@
 				<span class="access-top">06 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Foto</h3><p>Usa la cámara para tomar una foto y guardar la imagen.</p></span>
 			</a>
-			<a class="access-item" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">
+			<a class="access-item" href="chat.php">
 				<span class="access-top">07 <span class="access-arrow" aria-hidden="true">&#8599;</span></span>
 				<span><h3>Chat</h3><p>Abre el chat en línea.</p></span>
 			</a>

@@ -1,51 +1,59 @@
-# Chat de la clase
+# Sitio UPVM (CRUD, encuesta y chat)
 
-Chat en PHP con una API REST. Conserva los últimos 200 mensajes en un archivo JSON local y el navegador consulta mensajes nuevos cada 2 segundos. El chat se abre desde `app.php`.
+El proyecto usa una sola base de datos MySQL con las tablas `products`,
+`upvm_survey_responses`, `usuarios`, `ubicaciones` y `fotos_camara`. La definición
+completa está en `schema.sql`; la aplicación también crea las tablas si no existen.
 
-## Ejecutar en local (Windows)
+## Ejecutar en local
 
-Con PHP instalado, desde la carpeta del proyecto:
+Configura las variables de entorno de la base de datos y ejecuta el sitio con PHP
+y Apache, o con el servidor integrado de PHP:
 
 ```powershell
-php -S 0.0.0.0:5000 app.php
+php -S 0.0.0.0:5000
 ```
 
-Abre http://localhost:5000/app.php en dos pestañas con nombres distintos.
+Abre `http://localhost:5000/index.php`. El chat puede abrirse desde
+`http://localhost:5000/app.php`.
 
-## Conectar el chat con el sitio PHP
+## Variables de entorno
 
-Configura `CHAT_URL` en el servidor del sitio para que apunte a la página del chat:
+| Variable | Descripción |
+|---|---|
+| `DB_HOST` | Host de MySQL |
+| `DB_PORT` | Puerto de MySQL (opcional; por defecto `3306`) |
+| `DB_USER` | Usuario de MySQL |
+| `DB_PASSWORD` | Contraseña de MySQL |
+| `DB_NAME` | Nombre de la base de datos |
 
-```text
-CHAT_URL=https://tu-sitio.example.com/app.php
-```
-
-El enlace del sitio abre el chat y le pasa la dirección de regreso. Si se abre el chat directamente, `CRUD_URL` puede configurarse con la dirección del sitio:
-
-```text
-CRUD_URL=https://tu-sitio.example.com/
-```
+También se aceptan `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD` y
+`MYSQLDATABASE`. Para configurar el regreso desde el chat se puede establecer
+`CRUD_URL`. `CHAT_DATA_FILE` permite elegir dónde se guardan los mensajes.
 
 ## Desplegar en Render
 
-1. Sube el repositorio a GitHub y crea un **Web Service** en Render conectado al repositorio.
-2. Usa el `Dockerfile` incluido para desplegar el servicio PHP con Apache.
-3. Configura `CHAT_URL` en Render con la URL del servicio terminada en `/app.php`.
-4. Opcionalmente configura `CRUD_URL` para que el chat muestre el enlace de regreso al sitio.
+1. Crea un **Web Service** conectado al repositorio de GitHub.
+2. Selecciona **Docker** para que Render use el `Dockerfile` del proyecto.
+3. Configura `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` y `DB_NAME` en las
+   variables de entorno del servicio.
+4. Asegúrate de que MySQL permita conexiones desde Render y despliega.
 
-La API está disponible en `app.php?route=api/estado` y `app.php?route=api/mensajes`. Se puede establecer `CHAT_DATA_FILE` para elegir la ruta del archivo JSON; si no, se guarda en el directorio temporal del servidor. El archivo es local al servicio y no es una base de datos compartida entre varias instancias.
+Los mensajes del chat y las fotos subidas se guardan en el disco local del
+servicio, que puede ser temporal. Los datos de MySQL sí persisten.
 
-## Probar la API sin navegador
+## API del chat
+
+- `app.php?route=api/estado`
+- `app.php?route=api/mensajes`
+
+Los mensajes se conservan en un archivo JSON, hasta un máximo de 200; el cliente
+consulta mensajes nuevos cada dos segundos. El archivo local no se comparte entre
+varias instancias del servicio.
+
+Para probar la API en local:
 
 ```text
 curl "http://localhost:5000/app.php?route=api/estado"
 curl -X POST "http://localhost:5000/app.php?route=api/mensajes" -H "Content-Type: application/json" -d "{\"usuario\":\"Ana\",\"texto\":\"Hola\"}"
 curl "http://localhost:5000/app.php?route=api/mensajes&desde=0"
 ```
-
-## Limitaciones
-
-- Los mensajes se pierden al reiniciar el servidor o si Render reemplaza su sistema de archivos local.
-- Solo se conservan los últimos 200 mensajes.
-- No hay autenticación: cualquiera puede escribir con cualquier nombre.
-- El cliente consulta mensajes cada 2 segundos (polling).

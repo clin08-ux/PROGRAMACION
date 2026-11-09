@@ -244,7 +244,7 @@ $products = $db->query('SELECT id, name, description, price, stock, photo1, phot
     <p>
         <a class="button" href="crud.php">Agregar un producto</a>
         <a class="button" href="index.php">Página principal</a>
-        <a class="button" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
+        <a class="button" href="chat.php">Chat</a>
     </p>
 </main>
 <script>

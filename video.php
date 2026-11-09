@@ -48,7 +48,7 @@
 	</div>
 	<div class="actions">
 		<a class="button secondary" href="index.php">Página principal</a>
-		<a class="button" href="https://f7kc9fmh-5000.usw3.devtunnels.ms/">Chat</a>
+		<a class="button" href="chat.php">Chat</a>
 		<a class="button" href="https://www.youtube.com/watch?v=CMyu2H56DBk&amp;list=RDCMyu2H56DBk&amp;start_radio=1" target="_blank" rel="noopener noreferrer">Abrir en YouTube</a>
 	</div>
 </main>
